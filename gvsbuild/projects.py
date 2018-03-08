@@ -495,7 +495,7 @@ class Project_gobject_introspection(GitRepo, Meson):
         Meson.build(self)
 
         # Build extra gir/typelib
-        self.make_single_gir('atk')
+        self.make_single_gir('atk', add_meson=True)
         self.make_single_gir('gdk-pixbuf', add_meson=True)
         self.make_single_gir('pango')
         self.make_single_gir('gtk', prj_dir='gtk')
