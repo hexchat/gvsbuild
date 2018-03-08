@@ -1202,23 +1202,20 @@ class Project_opus(Tarball, Project):
         self.install(r'COPYING share\doc\opus')
 
 @project_add
-class Project_pango(Tarball, Project):
+class Project_pango(Tarball, Meson):
     def __init__(self):
         Project.__init__(self,
             'pango',
             archive_url = 'http://ftp.acc.umu.se/pub/GNOME/sources/pango/1.40/pango-1.40.14.tar.xz',
             hash = '90af1beaa7bf9e4c52db29ec251ec4fd0a8f2cc185d521ad1f88d01b3a6a17e3',
-            dependencies = ['cairo', 'harfbuzz'],
+            dependencies = ['cairo', 'harfbuzz', 'ninja', 'meson'],
             patches = ['0001-Drop-unused-_pango_ft2_ft_strerror.patch'],
             )
 
     def build(self):
-        configuration = 'Release_FC'
-        if self.builder.opts.configuration == 'debug':
-            configuration = 'Debug_FC'
-
-        self.exec_msbuild(r'win32\vs%(vs_ver)s\pango.sln', configuration=configuration)
+        Meson.build(self)
         self.install(r'COPYING share\doc\pango')
+
 
 @project_add
 class Project_pixman(Tarball, Project):
