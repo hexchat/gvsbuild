@@ -59,11 +59,11 @@ class Project_atk(Tarball, Meson):
             'atk',
             archive_url = 'http://ftp.acc.umu.se/pub/GNOME/sources/atk/2.26/atk-2.26.1.tar.xz',
             hash = 'ef00ff6b83851dddc8db38b4d9faeffb99572ba150b0664ee02e46f015ea97cb',
-            dependencies = ['ninja', 'meson', 'pkg-config', 'perl', 'glib'],
+            dependencies = ['ninja', 'meson', 'pkg-config', 'perl', 'glib', 'gobject-introspection'],
             )
 
     def build(self):
-        Meson.build(self, meson_params='-Ddisable_introspection=true -Denable_docs=false', make_tests=True)
+        Meson.build(self, meson_params='-Denable_docs=false', make_tests=True)
         self.install(r'.\COPYING share\doc\atk')
 
 @project_add
@@ -326,14 +326,15 @@ class Project_gdk_pixbuf(Tarball, Meson):
             'gdk-pixbuf',
             archive_url = 'https://git.gnome.org/browse/gdk-pixbuf/snapshot/gdk-pixbuf-f38e3e2cededb3ed9d8887072a4e685d3057847e.tar.xz',
             hash = '548d650085806379fae62e181696d4e9c29507d131ea62b75612e628c26e54ad',
-            dependencies = ['ninja', 'pkg-config', 'meson', 'perl', 'libtiff-4', 'jasper', 'glib', 'libpng'],
+            dependencies = ['ninja', 'pkg-config', 'meson', 'perl', 'libtiff-4', 'jasper', 'glib',
+                            'libpng', 'gobject-introspection'],
             )
 
     def build(self):
         # We can experiment with a couple of options to give to meson:
         #    -Dbuiltin_loaders=all|windows
         #        Buld the loader inside the library
-        Meson.build(self, meson_params='-Djasper=true -Dnative_windows_loaders=true -Dgir=false -Dman=false')
+        Meson.build(self, meson_params='-Djasper=true -Dnative_windows_loaders=true -Dman=false')
         self.install(r'.\COPYING share\doc\gdk-pixbuf')
 
     def post_install(self):
@@ -438,47 +439,11 @@ class Project_gobject_introspection(GitRepo, Meson):
                 'msys2',
                 'pkg-config',
                 'glib',
-                # This ones are for add their's gir
-                'atk',
-                'gdk-pixbuf',
-                'pango',
-                'gtk',
-                'gtk3',
                 ],
             patches = [
                 '00_glib_win_ver.patch',
                 ],
             )
-
-    def make_single_gir(self, prj_name, prj_dir=None, add_meson=False):
-        if not prj_dir:
-            prj_dir = prj_name
-
-        b_dir = r'%s\%s\build\win32' % (self.builder.working_dir, prj_dir, )
-        if not os.path.isfile(os.path.join(b_dir, 'detectenv-msvc.mak')):
-            b_dir = r'%s\%s\win32' % (self.builder.working_dir, prj_dir, )
-            if not os.path.isfile(os.path.join(b_dir, 'detectenv-msvc.mak')):
-                print_message('Unable to find detectenv-msvc.mak for %s' % (prj_name, ))
-                return
-
-        old_inc = None
-        if add_meson:
-            # include
-            add_inc = r'%s\%s-meson' % (self.builder.working_dir, prj_dir, )
-            old_inc = self.builder.mod_env('INCLUDE', add_inc, prepend=False)
-            print("Include add: %s" % (add_inc, ))
-
-        cmd = 'nmake -f %s-introspection-msvc.mak CFG=%s PREFIX=%s PYTHON=%s\python.exe install-introspection' % (
-                prj_name,
-                self.builder.opts.configuration,
-                self.builder.gtk_dir,
-                self.builder.opts.python_dir,
-                )
-
-        self.push_location(b_dir)
-        self.exec_vs(cmd)
-        self.pop_location()
-        self.builder.restore_env(old_inc)
 
     def build(self):
         # For finding gobject-introspection.pc
@@ -494,12 +459,6 @@ class Project_gobject_introspection(GitRepo, Meson):
 
         Meson.build(self)
 
-        # Build extra gir/typelib
-        self.make_single_gir('atk', add_meson=True)
-        self.make_single_gir('gdk-pixbuf', add_meson=True)
-        self.make_single_gir('pango')
-        self.make_single_gir('gtk', prj_dir='gtk')
-        self.make_single_gir('gtk', prj_dir='gtk3')
 
 @project_add
 class Project_graphene(GitRepo, Meson):
@@ -560,11 +519,12 @@ class Project_gsettings_desktop_schemas(Tarball, Project):
 
         self.install(r'.\COPYING share\doc\gsettings-desktop-schemas')
 
+
 class Project_gtk_base(Tarball, Project):
     def __init__(self, name, **kwargs):
         Project.__init__(self, name, **kwargs)
 
-    def build(self):
+    def build(self, prj_name):
         mo = 'gtk20.mo' if self.name == 'gtk' else 'gtk30.mo'
 
         localedir = os.path.join(self.pkg_dir, 'share', 'locale')
@@ -577,7 +537,18 @@ class Project_gtk_base(Tarball, Project):
             self.builder.exec_cmd(cmd, working_dir=self._get_working_dir())
         self.pop_location()
 
+        self.push_location(r'.\build')
+        command = 'nmake -f %s-introspection-msvc.mak CFG=%s PREFIX=%s PYTHON=%s\python.exe install-introspection' % (
+                    prj_name,
+                    self.builder.opts.configuration,
+                    self.builder.gtk_dir,
+                    self.builder.opts.python_dir,
+                    )
+        self.exec_vs(command)
+        self.pop_location()
+
         self.install(r'.\COPYING share\doc\%s' % self.name)
+
 
 @project_add
 class Project_gtk(Project_gtk_base):
@@ -593,7 +564,8 @@ class Project_gtk(Project_gtk_base):
     def build(self):
         self.exec_msbuild(r'build\win32\vs%(vs_ver)s\gtk+.sln')
 
-        super(Project_gtk, self).build()
+        super(Project_gtk, self).build('gtk')
+
 
 @project_add
 class Project_gtk3(Project_gtk_base):
@@ -609,7 +581,7 @@ class Project_gtk3(Project_gtk_base):
     def build(self):
         self.exec_msbuild(r'build\win32\vs%(vs_ver)s\gtk+.sln /p:GtkPostInstall=rem')
 
-        super(Project_gtk3, self).build()
+        super(Project_gtk3, self).build('gtk3')
 
     def post_install(self):
         self.exec_cmd(r'%(gtk_dir)s\bin\glib-compile-schemas.exe %(gtk_dir)s\share\glib-2.0\schemas')
@@ -1208,7 +1180,7 @@ class Project_pango(Tarball, Meson):
             'pango',
             archive_url = 'http://ftp.acc.umu.se/pub/GNOME/sources/pango/1.40/pango-1.40.14.tar.xz',
             hash = '90af1beaa7bf9e4c52db29ec251ec4fd0a8f2cc185d521ad1f88d01b3a6a17e3',
-            dependencies = ['cairo', 'harfbuzz', 'ninja', 'meson'],
+            dependencies = ['cairo', 'harfbuzz', 'ninja', 'meson', 'gobject-introspection'],
             patches = ['0001-Drop-unused-_pango_ft2_ft_strerror.patch'],
             )
 
