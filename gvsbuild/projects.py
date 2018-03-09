@@ -340,6 +340,9 @@ class Project_gdk_pixbuf(Tarball, Meson):
 
     def post_install(self):
         self.exec_cmd(r'%(gtk_dir)s\bin\gdk-pixbuf-query-loaders.exe --update-cache')
+        self.exec_cmd(r'rmdir /s /q %(gtk_dir)s\libexec')
+        self.exec_cmd(r'rmdir /s /q %(gtk_dir)s\share\installed-tests')
+        self.exec_cmd(r'rmdir /s /q %(gtk_dir)s\share\thumbnailers')
 
 @project_add
 class Project_gettext(Tarball, Project):
@@ -461,6 +464,14 @@ class Project_gobject_introspection(GitRepo, Meson):
 
         Meson.build(self)
 
+    def post_install(self):
+        self.exec_cmd(r'rmdir /s /q %(gtk_dir)s\share\aclocal')
+        locations = (r'%(gtk_dir)s\lib\girepository-1.0', r'%(gtk_dir)s\share\gir-1.0')
+        unused_girs = ('xrandr*', 'xlib*', 'xft*', 'xfixes*')
+        for loc in locations:
+            self.push_location(loc)
+            self.exec_cmd(r'del /Q ' + ' '.join(unused_girs))
+            self.pop_location()
 
 @project_add
 class Project_graphene(GitRepo, Meson):
@@ -800,6 +811,9 @@ class Project_libjpeg_turbo(Tarball, CmakeProject):
 
         self.install(r'.\pc-files\* lib\pkgconfig')
         self.install(r'.\LICENSE.md share\doc\libjpeg-turbo')
+
+    def post_install(self):
+        self.exec_cmd(r'rmdir /s /q %(gtk_dir)s\doc')
 
 @project_add
 class Project_libmicrohttpd(Tarball, Project):
@@ -1145,7 +1159,7 @@ class Project_openssl(Tarball, Project):
 
         self.install(r'.\cert.pem bin')
         self.install(r'.\openssl.cnf share')
-        self.install(r'.\LICENSE share\doc\openssl\COPYING')
+        self.install(r'.\LICENSE share\doc\openssl')
         self.install(r'.\pc-files\* lib\pkgconfig')
 
 @project_add
@@ -1197,6 +1211,9 @@ class Project_pango(Tarball, Meson):
         Meson.build(self)
         self.install(r'COPYING share\doc\pango')
 
+    def post_install(self):
+        self.exec_cmd(r'rmdir /s /q %(gtk_dir)s\libexec')
+        self.exec_cmd(r'rmdir /s /q %(gtk_dir)s\share\installed-tests')
 
 @project_add
 class Project_pixman(Tarball, Project):
@@ -1244,6 +1261,7 @@ class Project_pkg_config(GitRepo, Meson):
 
     def post_install(self):
         self.exec_cmd(r'copy %(gtk_dir)s\bin\pkgconf.exe %(gtk_dir)s\bin\pkg-config.exe')
+        self.exec_cmd(r'rmdir /s /q %(gtk_dir)s\share\aclocal')
 
 @project_add
 class Project_portaudio(Tarball, CmakeProject):
