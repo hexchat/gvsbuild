@@ -526,7 +526,7 @@ class Project_gtk_base(Tarball, Project):
     def __init__(self, name, **kwargs):
         Project.__init__(self, name, **kwargs)
 
-    def build(self, prj_name):
+    def build(self):
         mo = 'gtk20.mo' if self.name == 'gtk' else 'gtk30.mo'
 
         localedir = os.path.join(self.pkg_dir, 'share', 'locale')
@@ -539,9 +539,9 @@ class Project_gtk_base(Tarball, Project):
             self.builder.exec_cmd(cmd, working_dir=self._get_working_dir())
         self.pop_location()
 
-        self.push_location(r'.\build')
+        self.push_location(r'.\build' if self.name == 'gtk3' else r'.\build\win32')
         command = 'nmake -f %s-introspection-msvc.mak CFG=%s PREFIX=%s PYTHON=%s\python.exe install-introspection' % (
-                    prj_name,
+                    self.name,
                     self.builder.opts.configuration,
                     self.builder.gtk_dir,
                     self.builder.opts.python_dir,
@@ -572,8 +572,7 @@ class Project_gtk(Project_gtk_base):
 
     def build(self):
         self.exec_msbuild(r'build\win32\vs%(vs_ver)s\gtk+.sln')
-
-        super(Project_gtk, self).build('gtk')
+        super().build()
 
 
 @project_add
@@ -589,8 +588,7 @@ class Project_gtk3(Project_gtk_base):
 
     def build(self):
         self.exec_msbuild(r'build\win32\vs%(vs_ver)s\gtk+.sln /p:GtkPostInstall=rem')
-
-        super(Project_gtk3, self).build('gtk3')
+        super().build()
 
     def post_install(self):
         self.exec_cmd(r'%(gtk_dir)s\bin\glib-compile-schemas.exe %(gtk_dir)s\share\glib-2.0\schemas')
