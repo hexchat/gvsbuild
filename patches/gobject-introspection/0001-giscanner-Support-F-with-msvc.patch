@@ -1,0 +1,35 @@
+From 3f7c63898f2d7ada9d26d8cbe345b23a6faa258b Mon Sep 17 00:00:00 2001
+From: Patrick Griffis <tingping@tingping.se>
+Date: Fri, 9 Mar 2018 14:35:34 +0000
+Subject: [PATCH] giscanner: Support -F with msvc
+
+---
+ giscanner/scannermain.py | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/giscanner/scannermain.py b/giscanner/scannermain.py
+index ffcb95cd..67e5a2de 100755
+--- a/giscanner/scannermain.py
++++ b/giscanner/scannermain.py
+@@ -68,6 +68,9 @@ def process_cpp_includes(option, opt, value, parser):
+     cpp_includes = getattr(parser.values, option.dest)
+     cpp_includes.append(os.path.realpath(value))
+ 
++def do_nothing(option, opt, value, parser):
++    pass
++
+ 
+ def get_preprocessor_option_group(parser):
+     group = optparse.OptionGroup(parser, "Preprocessor options")
+@@ -81,6 +84,8 @@ def get_preprocessor_option_group(parser):
+     group.add_option("-I", help="Pre-processor include file",
+                      dest="cpp_includes", default=[], type="string",
+                      action="callback", callback=process_cpp_includes)
++    group.add_option("-F", help="Dummy option for MSVC",
++                     action="callback", callback=do_nothing)
+     group.add_option("-D", help="Pre-processor define",
+                      action="append", dest="cpp_defines",
+                      default=[])
+-- 
+2.16.2.windows.1
+

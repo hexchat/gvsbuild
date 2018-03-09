@@ -442,6 +442,7 @@ class Project_gobject_introspection(GitRepo, Meson):
                 ],
             patches = [
                 '00_glib_win_ver.patch',
+                '0001-giscanner-Support-F-with-msvc.patch',
                 ],
             )
 
