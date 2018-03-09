@@ -1183,7 +1183,8 @@ class Project_pango(Tarball, Meson):
             archive_url = 'http://ftp.acc.umu.se/pub/GNOME/sources/pango/1.40/pango-1.40.14.tar.xz',
             hash = '90af1beaa7bf9e4c52db29ec251ec4fd0a8f2cc185d521ad1f88d01b3a6a17e3',
             dependencies = ['cairo', 'harfbuzz', 'ninja', 'meson', 'gobject-introspection'],
-            patches = ['0001-Drop-unused-_pango_ft2_ft_strerror.patch'],
+            patches = ['0001-Drop-unused-_pango_ft2_ft_strerror.patch',
+                       '0001-Fix-view-cairo-on-Windows.patch'],
             )
 
     def build(self):

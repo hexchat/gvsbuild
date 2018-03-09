@@ -1,0 +1,48 @@
+From 3284ade6b11611dbb79fa25e2ba81ea0e1e3557a Mon Sep 17 00:00:00 2001
+From: Patrick Griffis <tingping@tingping.se>
+Date: Fri, 9 Mar 2018 15:03:28 +0000
+Subject: [PATCH] Fix view-cairo on Windows
+
+---
+ pango-view/viewer-cairo.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/pango-view/viewer-cairo.c b/pango-view/viewer-cairo.c
+index 707a8c8b..ca98c1cd 100644
+--- a/pango-view/viewer-cairo.c
++++ b/pango-view/viewer-cairo.c
+@@ -34,8 +34,6 @@
+ #include "viewer-x.h"
+ #include <cairo-xlib.h>
+ 
+-
+-
+ static cairo_surface_t *
+ cairo_x_view_iface_create_surface (gpointer instance,
+ 				   gpointer surface,
+@@ -229,18 +227,18 @@ cairo_vector_view_create (const PangoViewer *klass G_GNUC_UNUSED)
+   if (0)
+     ;
+   #ifdef CAIRO_HAS_SVG_SURFACE
+-    else if (0 == strcasecmp (extension, "svg"))
++    else if (0 == g_ascii_strcasecmp (extension, "svg"))
+       constructor = cairo_svg_surface_create;
+   #endif
+   #ifdef CAIRO_HAS_PDF_SURFACE
+-    else if (0 == strcasecmp (extension, "pdf"))
++    else if (0 == g_ascii_strcasecmp (extension, "pdf"))
+       constructor = cairo_pdf_surface_create;
+   #endif
+   #ifdef CAIRO_HAS_PS_SURFACE
+-    else if (0 == strcasecmp (extension, "ps"))
++    else if (0 == g_ascii_strcasecmp (extension, "ps"))
+       constructor = cairo_ps_surface_create;
+    #ifdef HAS_EPS
+-    else if (0 == strcasecmp (extension, "eps"))
++    else if (0 == g_ascii_strcasecmp (extension, "eps"))
+       constructor = _cairo_eps_surface_create;
+    #endif
+   #endif
+-- 
+2.16.2.windows.1
+
