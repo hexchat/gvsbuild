@@ -435,7 +435,7 @@ class Project_gobject_introspection(GitRepo, Meson):
             'gobject-introspection',
             repo_url = 'https://git.gnome.org/browse/gobject-introspection',
             fetch_submodules = False,
-            tag = 'wip/meson',
+            tag = 'master',
             dependencies = [
                 'ninja',
                 'meson',
@@ -445,7 +445,6 @@ class Project_gobject_introspection(GitRepo, Meson):
                 ],
             patches = [
                 '00_glib_win_ver.patch',
-                '0001-giscanner-Support-F-with-msvc.patch',
                 ],
             )
 
