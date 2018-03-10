@@ -327,7 +327,7 @@ class Project_gdk_pixbuf(Tarball, Meson):
             'gdk-pixbuf',
             archive_url = 'https://git.gnome.org/browse/gdk-pixbuf/snapshot/gdk-pixbuf-f38e3e2cededb3ed9d8887072a4e685d3057847e.tar.xz',
             hash = '548d650085806379fae62e181696d4e9c29507d131ea62b75612e628c26e54ad',
-            dependencies = ['ninja', 'pkg-config', 'meson', 'perl', 'libtiff-4', 'jasper', 'glib',
+            dependencies = ['ninja', 'pkg-config', 'meson', 'perl', 'glib',
                             'libpng', 'gobject-introspection'],
             )
 
@@ -335,11 +335,10 @@ class Project_gdk_pixbuf(Tarball, Meson):
         # We can experiment with a couple of options to give to meson:
         #    -Dbuiltin_loaders=all|windows
         #        Buld the loader inside the library
-        Meson.build(self, meson_params='-Djasper=true -Dnative_windows_loaders=true -Dman=false')
+        Meson.build(self, meson_params='-Dbuiltin_loaders=all -Dman=false')
         self.install(r'.\COPYING share\doc\gdk-pixbuf')
 
     def post_install(self):
-        self.exec_cmd(r'%(gtk_dir)s\bin\gdk-pixbuf-query-loaders.exe --update-cache')
         self.exec_cmd(r'rmdir /s /q %(gtk_dir)s\libexec')
         self.exec_cmd(r'rmdir /s /q %(gtk_dir)s\share\installed-tests')
         self.exec_cmd(r'rmdir /s /q %(gtk_dir)s\share\thumbnailers')
